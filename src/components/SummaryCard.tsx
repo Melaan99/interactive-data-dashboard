@@ -1,24 +1,40 @@
 // src/components/SummaryCard.tsx
 import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface SummaryCardProps {
   title: string;
   value: number | string;
-  suffix?: string; // e.g. “%” or “$”
+  suffix?: string;
+  /** Optional small description or delta, e.g. "+5% from last week" */
+  description?: string;
 }
 
 export default function SummaryCard({
   title,
   value,
   suffix = "",
+  description,
 }: SummaryCardProps) {
   return (
-    <div className="bg-white shadow rounded-lg p-4 flex flex-col">
-      <span className="text-sm font-medium text-gray-500">{title}</span>
-      <span className="mt-2 text-2xl font-bold text-gray-900">
-        {value}
-        <span className="text-lg font-normal text-gray-500">{suffix}</span>
-      </span>
-    </div>
+    <Card>
+      <CardHeader className="pb-0">
+        <CardTitle className="text-sm font-medium p-0">{title}</CardTitle>
+      </CardHeader>
+
+      <CardContent className="flex items-baseline justify-between pt-0">
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-bold text-gray-900">{value}</span>
+          {suffix && (
+            <span className="text-lg font-normal text-muted-foreground">
+              {suffix}
+            </span>
+          )}
+        </div>
+        {description && (
+          <div className="text-xs text-muted-foreground">{description}</div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

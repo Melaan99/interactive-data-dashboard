@@ -1,4 +1,4 @@
-import { subDays, startOfDay, addHours } from "date-fns";
+import { subDays, startOfDay } from "date-fns";
 
 export type SalesPoint = {
   date: string; // day ISO string, e.g. "2025-07-18"
