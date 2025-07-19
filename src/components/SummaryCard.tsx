@@ -17,7 +17,7 @@ export default function SummaryCard({
   description,
 }: SummaryCardProps) {
   return (
-    <Card>
+    <Card className="rounded-lg">
       <CardHeader className="pb-0">
         <CardTitle className="text-sm font-medium p-0">{title}</CardTitle>
       </CardHeader>

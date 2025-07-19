@@ -10,7 +10,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import clsx from "clsx";
 
 import { SalesPoint } from "@/lib/data";
 import SummaryCard from "./SummaryCard";
@@ -24,6 +23,19 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+
+import { motion } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 },
+  hover: { scale: 1.03, boxShadow: "0px 8px 15px rgba(0,0,0,0.1)" },
+};
 
 /* 1. KPI metric configuration  */
 const metrics = [
@@ -144,134 +156,163 @@ export default function DashboardLayout({
           maxNights={365}
         />
       </div>
-
       {/* KPI grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+      <motion.div
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 relative"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {metrics.map((m) => (
-          <div
-            key={m.key}
-            onClick={() => setSelected(m.key)}
-            className={clsx(
-              "cursor-pointer transition-shadow rounded-lg",
-              selected === m.key ? "ring-1 ring-green-500" : "hover:shadow-lg"
+          <div key={m.key} className="relative">
+            {/* 1️⃣ Moving highlight */}
+            {selected === m.key && (
+              <motion.div
+                layoutId="kpiHighlight"
+                className="absolute -inset-1  rounded-lg border-2  border-green-500 pointer-events-none"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
             )}
-          >
-            <SummaryCard
-              title={m.title}
-              value={totals[m.key].toFixed(m.suffix === "%" ? 1 : 0)}
-              suffix={m.suffix}
-            />
+
+            {/* 2️⃣ The actual card */}
+            <motion.div
+              layout
+              onClick={() => setSelected(m.key)}
+              className="relative z-10 cursor-pointer rounded-lg  "
+              whileHover={{
+                scale: 1.03,
+                rotateX: 3,
+                rotateY: 3,
+              }}
+              whileTap={{ scale: 0.97, rotateX: 0, rotateY: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <SummaryCard
+                title={m.title}
+                value={totals[m.key].toFixed(m.suffix === "%" ? 1 : 0)}
+                suffix={m.suffix}
+              />
+            </motion.div>
           </div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Charts */}
       <h2 className="text-2xl font-medium">{primary.title} Insights</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* — Line: primary metric trend — */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Trend (Line)</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ChartContainer config={lineConfig} className="h-full w-full">
-              <LineChart data={trendSeries} margin={{ left: 12, right: 12 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tickFormatter={(v) =>
-                    new Date(v).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }
-                />
-                <YAxis />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      nameKey="value"
-                      labelFormatter={(v) =>
-                        new Date(v).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      }
-                    />
-                  }
-                />
-                <Line
-                  dataKey="value"
-                  stroke={lineConfig.value.color}
-                  strokeWidth={2}
-                  dot={false}
-                  type="monotone"
-                />
-              </LineChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+      <motion.div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* — Line Chart Card — */}
+        <motion.div variants={itemVariants} whileHover="hover">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trend (Line)</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ChartContainer config={lineConfig} className="h-full w-full">
+                <LineChart data={trendSeries} margin={{ left: 12, right: 12 }}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={32}
+                    tickFormatter={(v) =>
+                      new Date(v).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
+                  />
+                  <YAxis />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        nameKey="value"
+                        labelFormatter={(v) =>
+                          new Date(v).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        }
+                      />
+                    }
+                  />
+                  <Line
+                    dataKey="value"
+                    stroke={lineConfig.value.color}
+                    strokeWidth={2}
+                    dot={false}
+                    type="monotone"
+                  />
+                </LineChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* — Bar: primary vs. companion metric — */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {primary.title} vs {secondary.title} (Bar)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ChartContainer config={barConfig} className="h-full w-full">
-              <BarChart data={compareSeries} margin={{ left: 12, right: 12 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tickFormatter={(v) =>
-                    new Date(v).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }
-                />
-                <YAxis />
-                <ChartLegend content={<ChartLegendContent />} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(v) =>
-                        new Date(v).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      }
-                    />
-                  }
-                />
-                <Bar
-                  dataKey="primary"
-                  fill={barConfig.primary.color}
-                  stackId="a"
-                />
-                <Bar
-                  dataKey="secondary"
-                  fill={barConfig.secondary.color}
-                  stackId="a"
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
+        {/* — Bar Chart Card — */}
+        <motion.div variants={itemVariants} whileHover="hover">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {primary.title} vs {secondary.title} (Bar)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ChartContainer config={barConfig} className="h-full w-full">
+                <BarChart data={compareSeries} margin={{ left: 12, right: 12 }}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={32}
+                    tickFormatter={(v) =>
+                      new Date(v).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
+                  />
+                  <YAxis />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={(v) =>
+                          new Date(v).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        }
+                      />
+                    }
+                  />
+                  <Bar
+                    dataKey="primary"
+                    fill={barConfig.primary.color}
+                    stackId="a"
+                  />
+                  <Bar
+                    dataKey="secondary"
+                    fill={barConfig.secondary.color}
+                    stackId="a"
+                  />
+                </BarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
