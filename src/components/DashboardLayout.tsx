@@ -135,14 +135,15 @@ export default function DashboardLayout({
 
   return (
     <div className="p-6 space-y-8">
-      <h1 className="text-4xl font-bold">E-Commerce Sales Dashboard</h1>
-
-      <DateRangePicker
-        range={range}
-        onChange={setRange}
-        minNights={1}
-        maxNights={365}
-      />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-4xl font-bold">Dashboard</h1>
+        <DateRangePicker
+          range={range}
+          onChange={setRange}
+          minNights={1}
+          maxNights={365}
+        />
+      </div>
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
